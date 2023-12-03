@@ -1,4 +1,4 @@
-open! Core
+open! Import
 
 let year = 2023
 let day = 2
@@ -56,7 +56,7 @@ module Cubes = struct
 end
 
 module Part_1 = struct
-  let run input : (string, string) result =
+  let run input : string Or_error.t =
     let input =
       String.split_lines input
       |> List.map ~f:(fun line -> String.split line ~on:':' |> List.last_exn)
@@ -71,12 +71,12 @@ module Part_1 = struct
     List.foldi games ~init:0 ~f:(fun idx0 acc game_result ->
       if game_result then acc else acc + idx0 + 1)
     |> Int.to_string
-    |> Result.return
+    |> return
   ;;
 end
 
 module Part_2 = struct
-  let run input : (string, string) result =
+  let run input : string Or_error.t =
     let input =
       String.split_lines input
       |> List.map ~f:(fun line -> String.split line ~on:':' |> List.last_exn)
@@ -87,6 +87,6 @@ module Part_2 = struct
     List.fold game_maxs ~init:0 ~f:(fun acc (red, blue, green) ->
       acc + Cubes.(value red * value blue * value green))
     |> Int.to_string
-    |> Result.return
+    |> return
   ;;
 end

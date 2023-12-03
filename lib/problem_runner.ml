@@ -7,6 +7,10 @@ module Credentials = struct
   let to_headers (t : t) : (string * string) list = [ "Cookie", "session=" ^ t ]
 end
 
+let lwt_error_to_or_error =
+  Result.map_error ~f:(fun error -> Piaf.Error.to_string error |> Error.of_string)
+;;
+
 module Run_mode = struct
   type t =
     | Test_from_puzzle_input of { credentials : Credentials.t option }
@@ -19,7 +23,7 @@ module Run_mode = struct
   ;;
 
   let get_puzzle_input (year : int) (day : int) (credentials : Credentials.t option)
-    : (string, string) result
+    : string Or_error.t
     =
     (* Create cache directory structure *)
     let () =
@@ -39,9 +43,11 @@ module Run_mode = struct
     then Ok (read_file filename) (* If not, fetch it from adventofcode.com *)
     else (
       match credentials with
-      | None -> Error "Cannot fetch input from adventofcode.com: missing credentials."
+      | None ->
+        Or_error.error_string
+          "Cannot fetch input from adventofcode.com: missing credentials."
       | Some credentials ->
-        Result.map_error ~f:Piaf.Error.to_string
+        lwt_error_to_or_error
         @@ Lwt_main.run
         @@
         let uri =
@@ -62,18 +68,18 @@ module Run_mode = struct
         Lwt_result.return body)
   ;;
 
-  let get_input (year : int) (day : int) : t -> (string, string) result = function
+  let get_input (year : int) (day : int) : t -> string Or_error.t = function
     | Test_from_puzzle_input { credentials } -> get_puzzle_input year day credentials
     | Submit { credentials } -> get_puzzle_input year day (Some credentials)
   ;;
 
   let cleanup (year : int) (day : int) (part : int) (output : string) (run_mode : t)
-    : (string option, string) result
+    : string option Or_error.t
     =
     match run_mode with
     | Test_from_puzzle_input _ -> Ok None
     | Submit { credentials } ->
-      Result.map_error ~f:Piaf.Error.to_string
+      lwt_error_to_or_error
       @@ Lwt_main.run
       @@
       let uri =
@@ -111,14 +117,15 @@ let run_problem
   (year : int)
   (day : int)
   (part : int)
-  : (string, string) result
+  : string Or_error.t
   =
   let@ input = Run_mode.get_input year day run_mode in
   let@ result =
     match part with
     | 1 -> Problem.Part_1.run input
     | 2 -> Problem.Part_2.run input
-    | p -> Error (Format.sprintf {|Invalid part "%d". Expected "1" or "2".|} p)
+    | p ->
+      Or_error.error_string (Format.sprintf {|Invalid part "%d". Expected "1" or "2".|} p)
   in
   let@ cleanup_result = Run_mode.cleanup year day part result run_mode in
   let () =
@@ -129,7 +136,7 @@ let run_problem
   Ok result
 ;;
 
-let find_problem (year : int) (day : int) : ((module Problem.T), string) result =
+let find_problem (year : int) (day : int) : (module Problem.T) Or_error.t =
   match
     List.find
       ~f:(fun (module Problem : Problem.T) -> Problem.year = year && Problem.day = day)
@@ -137,10 +144,11 @@ let find_problem (year : int) (day : int) : ((module Problem.T), string) result 
   with
   | Some p -> Ok p
   | None ->
-    Error (Format.sprintf "Problem (year = %d, day = %d) not implemented." year day)
+    Or_error.error_string
+      (Format.sprintf "Problem (year = %d, day = %d) not implemented." year day)
 ;;
 
-let run (options : Options.t) : (string, string) result =
+let run (options : Options.t) : string Or_error.t =
   let@ problem = find_problem options.year options.day in
   run_problem problem options.run_mode options.year options.day options.part
 ;;

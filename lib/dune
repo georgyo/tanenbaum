@@ -13,4 +13,5 @@
 
 (library
  (name problem)
- (modules problem))
+ (modules problem)
+ (libraries core))

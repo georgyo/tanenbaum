@@ -1,10 +1,11 @@
 open! Core
+open! Or_error.Let_syntax
 
 let year = 2023
 let day = 1
 
 module Part_1 = struct
-  let run input : (string, string) result =
+  let run input : string Or_error.t =
     let firstlastdigit s =
       String.fold s ~init:(None, None) ~f:(fun (first, last) c ->
         if Char.is_digit c
@@ -19,10 +20,10 @@ module Part_1 = struct
     |> List.fold ~init:0 ~f:(fun acc line ->
       firstlastdigit line |> Result.ok_or_failwith |> Int.( + ) acc)
     |> Int.to_string
-    |> Result.return
+    |> return
   ;;
 end
 
 module Part_2 = struct
-  let run input : (string, string) result = Ok input
+  let run input : string Or_error.t = Ok input
 end

@@ -1,3 +1,5 @@
+open! Core
+
 (** The type of an Advent of Code puzzle which can be run by Tanenbaum. *)
 module type T = sig
   (** The year that this puzzle is from. *)
@@ -12,7 +14,7 @@ module type T = sig
 
         This should return [Error] if something goes wrong during execution -- for example, there
         was a parsing error. If [Error] was returned, Tanenbaum will ignore the [--submit] flag. *)
-    val run : string -> (string, string) result
+    val run : string -> string Or_error.t
   end
 
   (** Contains specific to the second part of the puzzle. *)
@@ -21,6 +23,6 @@ module type T = sig
 
         This should return [Error] if something goes wrong during execution -- for example, there
         was a parsing error. If [Error] was returned, Tanenbaum will ignore the [--submit] flag. *)
-    val run : string -> (string, string) result
+    val run : string -> string Or_error.t
   end
 end

@@ -50,10 +50,11 @@ module Cli = struct
     | _, None, _ -> `Error (false, {|"day" argument required.|})
     | _, _, None -> `Error (false, {|"part" argument required.|})
     | Some year, Some day, Some part ->
-      let output =
+      let output : string Or_error.t =
         let@ (run_mode : Problem_runner.Run_mode.t) =
           match auth_token, submit with
-          | None, true -> Error {|Must provide AUTH_TOKEN when using --submit|}
+          | None, true ->
+            Or_error.error_string {|Must provide AUTH_TOKEN when using --submit|}
           | token, false ->
             Ok
               (Problem_runner.Run_mode.Test_from_puzzle_input
@@ -71,7 +72,7 @@ module Cli = struct
        | Ok output ->
          print_endline output;
          `Ok ()
-       | Error error_msg -> `Error (false, error_msg))
+       | Error error -> `Error (false, Error.to_string_hum error))
   ;;
 
   let main () =

@@ -39,6 +39,6 @@ end
 
 (** [run options] runs a puzzle solution, configured by [options].
 
-    This may return [Error] for a number of reasons -- the returned [string] should indicate what
+    This may return [Error] for a number of reasons -- the returned [Error.t] should indicate what
     went wrong. *)
-val run : Options.t -> (string, string) result
+val run : Options.t -> string Or_error.t
