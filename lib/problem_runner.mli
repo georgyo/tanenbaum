@@ -1,3 +1,5 @@
+open! Core
+
 (** Credentials are used to authenticate with [adventofcode.com], to automate some slightly
     annoying things that you need to do when working on puzzle solutions. *)
 module Credentials : sig

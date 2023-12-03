@@ -57,7 +57,8 @@ module Cli = struct
           | token, false ->
             Ok
               (Problem_runner.Run_mode.Test_from_puzzle_input
-                 { credentials = Option.map Problem_runner.Credentials.of_auth_token token
+                 { credentials =
+                     Option.map ~f:Problem_runner.Credentials.of_auth_token token
                  })
           | Some token, true ->
             Ok
