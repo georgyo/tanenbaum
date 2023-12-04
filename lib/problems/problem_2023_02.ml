@@ -3,6 +3,14 @@ open! Import
 let year = 2023
 let day = 2
 
+let test_data =
+  {|Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green|}
+;;
+
 module Cubes = struct
   type t =
     | Red of int
@@ -73,6 +81,11 @@ module Part_1 = struct
     |> Int.to_string
     |> return
   ;;
+
+  let%expect_test _ =
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {| 8 |}]
+  ;;
 end
 
 module Part_2 = struct
@@ -88,5 +101,10 @@ module Part_2 = struct
       acc + Cubes.(value red * value blue * value green))
     |> Int.to_string
     |> return
+  ;;
+
+  let%expect_test _ =
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {| 2286 |}]
   ;;
 end

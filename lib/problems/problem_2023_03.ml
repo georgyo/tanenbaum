@@ -3,6 +3,19 @@ open! Import
 let year = 2023
 let day = 3
 
+let test_data =
+  {|467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..|}
+;;
+
 let search_surroundings ?init ~f x y =
   f
     ?init
@@ -67,7 +80,6 @@ module Part_1 = struct
     in
     let valid_numbers =
       Array.foldi input ~init:[] ~f:(fun y (acc : Int.t List.t) yv ->
-        print_endline [%string "Processing line %{y#Int}"];
         let line_valid_numbers =
           Array.foldi ~init:[] yv ~f:(fun x acc xv ->
             match xv with
@@ -93,6 +105,12 @@ module Part_1 = struct
     in
     List.fold ~init:0 ~f:( + ) valid_numbers |> Int.to_string |> return
   ;;
+
+  let%expect_test _ =
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {|
+      4361 |}]
+  ;;
 end
 
 module Part_2 = struct
@@ -117,7 +135,6 @@ module Part_2 = struct
     in
     let valid_numbers =
       Array.foldi input ~init:[] ~f:(fun y acc yv ->
-        print_endline [%string "Processing line %{y#Int}"];
         let line_valid_numbers =
           Array.foldi ~init:[] yv ~f:(fun x acc xv ->
             match xv with
@@ -150,5 +167,11 @@ module Part_2 = struct
       | _ -> acc)
     |> Int.to_string
     |> return
+  ;;
+
+  let%expect_test _ =
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {|
+      467835 |}]
   ;;
 end

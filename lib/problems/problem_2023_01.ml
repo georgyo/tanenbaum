@@ -22,6 +22,15 @@ module Part_1 = struct
     |> Int.to_string
     |> return
   ;;
+
+  let%expect_test _ =
+    let test_data = {|1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet|} in
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {| 142 |}]
+  ;;
 end
 
 module Part_2 = struct
@@ -56,5 +65,19 @@ module Part_2 = struct
     |> List.fold ~init:0 ~f:( + )
     |> Int.to_string
     |> return
+  ;;
+
+  let%expect_test _ =
+    let test_data =
+      {|two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen|}
+    in
+    run test_data |> Or_error.ok_exn |> print_endline;
+    [%expect {| 281 |}]
   ;;
 end
