@@ -137,10 +137,32 @@ module Part_1 = struct
 end
 
 module Part_2 = struct
-  let run _input : string Or_error.t = Ok "input"
+  let run input : string Or_error.t =
+    let input = Input_data.parse input in
+    let rec loop acc seed stop =
+      if seed >= stop
+      then acc
+      else (
+        let loc = Input_data.DstSrcMap.find_last_value input.maps seed in
+        loop (if loc < acc then loc else acc) (seed + 1) stop)
+    in
+    let seeds =
+      let rec f acc list =
+        match list with
+        | [] -> acc
+        | start :: range :: tl -> f ((start, start + range) :: acc) tl
+        | _ as remainder -> raise_s [%message "No matching pair" (remainder : int list)]
+      in
+      f [] input.seeds
+    in
+    List.fold ~init:Int.max_value seeds ~f:(fun acc (start, stop) -> loop acc start stop)
+    |> Int.to_string
+    |> return
+  ;;
 
   let%expect_test _ =
     run test_data |> Or_error.ok_exn |> print_endline;
-    [%expect {| input |}]
+    [%expect {|
+      46 |}]
   ;;
 end
