@@ -15,6 +15,7 @@ module Card = struct
 
     let card_value card =
       match card with
+      | 'X' -> 1 (* Wild card replacement *)
       | '2' .. '9' -> String.of_char card |> Int.of_string
       | 'T' -> 10
       | 'J' -> 11
@@ -68,9 +69,13 @@ module Hand = struct
 
     let to_hand_type (t : t) =
       let hand = List.sort t.hand ~compare:Card.compare in
+      let jokers = ref 0 in
       let rec matches ~acc ~prev ~prev_count hand =
         match hand with
         | [] -> if prev_count > 1 then prev_count :: acc else acc
+        | 'X' :: tl ->
+          jokers := !jokers + 1;
+          matches ~acc ~prev ~prev_count tl
         | c :: tl when Card.(c = prev) ->
           matches ~acc ~prev ~prev_count:(prev_count + 1) tl
         | c :: tl ->
@@ -81,12 +86,19 @@ module Hand = struct
             tl
       in
       let matches =
-        matches ~acc:[] ~prev:'2' ~prev_count:0 hand |> List.sort ~compare:Int.compare
+        matches ~acc:[] ~prev:'2' ~prev_count:0 hand
+        |> List.sort ~compare:Int.compare
+        |> List.rev
+      in
+      let matches =
+        match matches with
+        | [] -> if !jokers > 1 then [ !jokers ] else matches
+        | hd :: tl -> (hd + !jokers) :: tl
       in
       match matches with
       | [ 5 ] -> Hand_type.Five
       | [ 4 ] -> Hand_type.Four
-      | [ 2; 3 ] -> Hand_type.Full
+      | [ 3; 2 ] -> Hand_type.Full
       | [ 3 ] -> Hand_type.Three
       | [ 2; 2 ] -> Hand_type.Two
       | [ 2 ] -> Hand_type.One
@@ -111,7 +123,12 @@ module Hand = struct
   include T
   include Comparable.Make (T)
 
-  let of_string s =
+  let of_string ?wild s =
+    let s =
+      match wild with
+      | Some wild -> String.map s ~f:(fun c -> if Char.(c = wild) then 'X' else c)
+      | None -> s
+    in
     match String.split ~on:' ' s with
     | [ hand; bid ] -> { hand = String.to_list hand; bid = Int.of_string bid }
     | _ -> raise_s [%message "invalid hand" (s : string)]
@@ -135,17 +152,24 @@ module Part_1 = struct
     |> return
   ;;
 
-  let%expect_test _ =
+  let%expect_test "part1_value" =
     run test_data |> Or_error.ok_exn |> print_endline;
     [%expect {|6440|}]
   ;;
 end
 
 module Part_2 = struct
-  let run _input : string Or_error.t = Ok ""
+  let run input : string Or_error.t =
+    String.split_lines input
+    |> List.map ~f:(Hand.of_string ~wild:'J')
+    |> List.sort ~compare:Hand.compare
+    |> List.foldi ~init:0 ~f:(fun i acc { bid; _ } -> acc + (bid * (i + 1)))
+    |> Int.to_string
+    |> return
+  ;;
 
-  let%expect_test _ =
+  let%expect_test "part2_value" =
     run test_data |> Or_error.ok_exn |> print_endline;
-    [%expect {||}]
+    [%expect {|5905|}]
   ;;
 end
