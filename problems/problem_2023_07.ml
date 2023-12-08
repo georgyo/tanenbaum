@@ -92,7 +92,10 @@ module Hand = struct
       in
       let matches =
         match matches with
-        | [] -> if !jokers > 1 then [ !jokers ] else matches
+        | [] ->
+          if !jokers > 0
+          then [ (if !jokers = 5 then !jokers else !jokers + 1) ]
+          else matches
         | hd :: tl -> (hd + !jokers) :: tl
       in
       match matches with
