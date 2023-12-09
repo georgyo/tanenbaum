@@ -89,27 +89,31 @@ module Part_2 = struct
     let starting_locs =
       Map.keys map |> List.filter ~f:(StringLabels.ends_with ~suffix:"A")
     in
-    let move (current_locs : string list) ~(direction : Direction.t) =
-      List.map current_locs ~f:(fun loc ->
-        match direction, Map.find_exn map loc with
-        | L, (next, _) | R, (_, next) -> next)
+    let move ~(loc : string) ~(direction : Direction.t) =
+      match direction, Map.find_exn map loc with
+      | L, (next, _) | R, (_, next) -> next
     in
-    let rec f ~count (locs : string list) moves' =
-      let call ~direction tl =
-        let next = move ~direction locs in
+    let rec f ~count ~(loc : string) moves' =
+      let call ~direction tl : int =
+        let next = move ~direction ~loc in
         match tl with
-        | [] -> f ~count:(count + 1) next moves
-        | tl -> f ~count:(count + 1) next tl
+        | [] -> f ~count:(count + 1) ~loc:next moves
+        | tl -> f ~count:(count + 1) ~loc:next tl
       in
-      if List.fold locs ~init:true ~f:(fun acc loc ->
-           StringLabels.ends_with ~suffix:"Z" loc && acc)
+      if StringLabels.ends_with ~suffix:"Z" loc
       then count
       else (
         match moves' with
         | direction :: tl -> call ~direction tl
         | [] -> raise_s [%message "impossible" [%here]])
     in
-    f ~count:0 starting_locs moves |> Int.to_string |> return
+    List.map starting_locs ~f:(fun loc ->
+      let distance = f ~loc ~count:0 moves in
+      print_s [%message (loc : string) (distance : int)];
+      distance)
+    |> List.fold ~init:1 ~f:( * )
+    |> Int.to_string
+    |> return
   ;;
 
   let%expect_test _ =
@@ -126,6 +130,9 @@ XXX = (XXX, XXX)|}
     |> run
     |> Or_error.ok_exn
     |> print_endline;
-    [%expect {|6|}]
+    [%expect {|
+      ((loc 11A) (distance 2))
+      ((loc 22A) (distance 3))
+      6|}]
   ;;
 end
